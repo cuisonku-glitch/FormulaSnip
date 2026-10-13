@@ -1,0 +1,12 @@
+PySide6==6.8.3
+onnxruntime>=1.20,<2
+tokenizers>=0.21,<1
+numpy>=1.26,<2
+Pillow>=11,<13
+rapidocr-onnxruntime==1.4.4
+pypdfium2>=4,<6
+latex2mathml>=3.77,<4
+mathml2omml==0.0.2
+python-docx>=1.1,<2
+requests>=2.32,<3
+pyinstaller>=6.13,<7

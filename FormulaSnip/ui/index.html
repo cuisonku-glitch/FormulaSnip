@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file: qrc: data:; script-src 'self' 'unsafe-inline' file: qrc:; style-src 'self' 'unsafe-inline'; img-src data: file:; connect-src 'none'; object-src 'none'; frame-src 'none'">
+<title>拾式 FormulaSnip</title>
+<script>document.documentElement.dataset.theme=new URLSearchParams(location.search).get('theme')||'light';</script>
+<link rel="stylesheet" href="style.css">
+<script>window.MathJax={startup:{typeset:false},tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true},svg:{fontCache:'none'},options:{enableMenu:false}};</script>
+<script defer src="vendor/tex-svg-full.js"></script><script defer src="qrc:///qtwebchannel/qwebchannel.js"></script><script defer src="app.js"></script></head>
+<body>
+
+<header class="toolbar">
+ <div class="tb-group">
+  <button class="capture-btn" data-action="capture" title="框选屏幕上的公式或文字">
+   <span class="scan-mark"><i></i><i></i><i></i><i></i><em></em></span><b>截图识别</b><kbd id="shortcut">Ctrl Alt S</kbd>
+  </button>
+  <span class="tb-sep"></span>
+  <button class="tool tone-blue" data-action="import" data-icon="upload" data-tip="导入图片 / PDF · Ctrl O" aria-label="导入图片或 PDF"></button>
+  <button class="tool tone-violet" data-action="paste" data-icon="clipboard" data-tip="粘贴图片 · Ctrl V" aria-label="粘贴图片"></button>
+  <button class="tool tone-orange" data-action="ink" data-icon="pen" data-tip="手写公式" aria-label="手写公式"></button>
+  <button class="tool tone-teal" onclick="newSnippet()" data-icon="plus" data-tip="新建公式 · Ctrl N" aria-label="新建公式"></button>
+ </div>
+ <div class="pager" id="pager">
+  <button class="tool small" onclick="jumpRecord('oldest')" data-icon="chevronsLeft" data-tip="最早一条" aria-label="最早一条"></button>
+  <button class="tool small" onclick="navigateRecord(-1)" data-icon="chevronLeft" data-tip="上一条 · ←" aria-label="上一条"></button>
+  <span id="detail-position">0 / 0</span>
+  <button class="tool small" onclick="navigateRecord(1)" data-icon="chevronRight" data-tip="下一条 · →" aria-label="下一条"></button>
+  <button class="tool small" onclick="jumpRecord('newest')" data-icon="chevronsRight" data-tip="最新一条" aria-label="最新一条"></button>
+ </div>
+ <div class="tb-group end">
+  <button class="tool" id="nav-library" onclick="toggleLibrary()" data-icon="grid" data-tip="公式资料库 · Ctrl L" data-tip-pos="end" aria-label="公式资料库"><span class="count" id="nav-count" data-zero>0</span></button>
+  <button class="tool tone-red" id="delete-button" onclick="deleteCurrent()" data-icon="trash" data-tip="删除这条记录 · Delete" data-tip-pos="end" aria-label="删除记录"></button>
+  <button class="tool" onclick="openSettings()" data-icon="settings" data-tip="设置与帮助" data-tip-pos="end" aria-label="设置与帮助"></button>
+ </div>
+</header>
+
+<main>
+ <section id="library" class="page">
+  <div class="library-head">
+   <h1 id="library-title">公式资料库</h1>
+   <div class="segmented" id="library-filter" style="--n:2"><i class="thumb"></i><button id="nav-all" class="selected" onclick="showLibrary(false)">全部</button><button id="nav-favorites" onclick="showLibrary(true)">收藏</button></div>
+   <label class="search"><span data-icon="search"></span><input id="search" placeholder="搜索名称、公式或文字…" oninput="renderGallery()"><kbd>Ctrl F</kbd></label>
+   <div class="segmented" id="gallery-view" style="--n:3"><i class="thumb"></i><button class="selected" onclick="galleryView('both',this)">对照</button><button onclick="galleryView('original',this)">原图</button><button onclick="galleryView('rendered',this)">公式</button></div>
+  </div>
+  <div class="section-line"><span id="result-count">全部记录 · 0</span><span>按时间从新到旧</span></div>
+  <div id="gallery" class="gallery"></div>
+  <div id="empty" class="empty">
+   <div class="empty-visual"><div class="empty-paper"><span class="eq">e<sup>iπ</sup> + 1 = 0</span></div><div class="empty-select"><i></i><i></i><i></i><i></i><em></em></div></div>
+   <h2>你的第一条公式，从这里开始</h2>
+   <p>框选屏幕上的公式，或把图片直接拖进窗口。</p>
+   <div class="empty-actions"><button class="btn primary large" data-action="capture" data-icon="scan">开始截图</button><button class="btn large" onclick="newSnippet(true)" data-icon="edit">试试公式编辑器</button></div>
+   <div class="empty-tips"><span><b>1</b>截图或导入</span><i></i><span><b>2</b>核对与编辑</span><i></i><span><b>3</b>复制或导出</span></div>
+  </div>
+  <button id="load-more" class="btn more" onclick="shown+=24;renderGallery()" hidden>显示更多记录</button>
+ </section>
+
+ <section id="detail" class="page" hidden>
+  <div class="snip-head">
+   <button id="star-button" class="icon-btn star" onclick="favoriteCurrent()" data-icon="star" data-tip="收藏" data-tip-pos="start" aria-label="收藏"></button>
+   <input id="record-title" aria-label="记录名称" placeholder="给公式起个名字" oninput="markDirty()">
+   <div id="record-meta" class="meta"></div>
+  </div>
+
+  <div class="preview-card">
+   <div class="preview-toolbar">
+    <div class="segmented" id="preview-tabs" style="--n:3"><i class="thumb"></i><button id="tab-preview" class="selected" onclick="previewView('rendered')">预览</button><button id="tab-original" onclick="previewView('original')">原图</button><button id="tab-both" onclick="previewView('both')">对照</button></div>
+    <div class="preview-zoom"><button class="icon-btn" onclick="zoom(-.15)" data-icon="minus" data-tip="缩小" aria-label="缩小"></button><button id="zoom-label" onclick="zoom(0,true)" data-tip="恢复 100%">100%</button><button class="icon-btn" onclick="zoom(.15)" data-icon="plus" data-tip="放大" data-tip-pos="end" aria-label="放大"></button></div>
+   </div>
+   <div id="preview-area" class="preview-area">
+    <div id="original-pane" hidden><span class="pane-label">原图</span><img id="original-image" alt="识别原图"></div>
+    <div id="rendered-pane"><span class="pane-label" id="preview-label">预览</span><div id="rendered-content"></div></div>
+   </div>
+   <div class="action-row">
+    <button class="btn primary" id="copy-main" onclick="copyMain(this)" data-icon="copy"><span>复制 LaTeX</span></button>
+    <button class="btn formula-only" onclick="copyMathML(this)" data-icon="word"><span>复制到 Word</span></button>
+    <button class="btn formula-only" onclick="exportCurrent('copy_png',this)" data-icon="image"><span>复制图片</span></button>
+    <span class="grow"></span>
+    <button class="btn quiet" id="retry-button" onclick="retryCurrent()" data-icon="refresh"><span>重新识别</span></button>
+    <div class="dropdown">
+     <button class="btn quiet" onclick="toggleExport(event)" data-icon="download"><span>导出</span></button>
+     <div id="export-menu" class="dropdown-menu" hidden>
+      <button onclick="exportCurrent('docx')"><b>DOCX</b>Word 文档 · 可编辑公式</button>
+      <button onclick="exportCurrent('latex')"><b>TEX</b>LaTeX 源文件</button>
+      <button onclick="exportCurrent('markdown')"><b>MD</b>Markdown</button>
+      <button class="formula-only" onclick="exportCurrent('png')"><b>PNG</b>公式图片</button>
+      <button class="formula-only" onclick="exportCurrent('svg')"><b>SVG</b>矢量公式</button>
+      <button class="formula-only" onclick="exportCurrent('mathml')"><b>MML</b>MathML</button>
+      <button id="export-original" onclick="exportCurrent('original')"><b>IMG</b>原始图片</button>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="lower" id="lower">
+  <div id="formats" class="formats"></div>
+
+  <div class="editor-card">
+   <div class="output-header">
+    <h3>编辑</h3><span id="draft-state"></span>
+    <select id="content-kind" aria-label="内容类型" onchange="markDirty();livePreview()"><option value="formula">LaTeX 公式</option><option value="mixed">图文 Markdown</option><option value="text">纯文本</option></select>
+    <button class="btn small" id="tidy-button" onclick="tidyCurrent()" data-icon="sparkles" data-tip="去掉多余空格，补全 \left \right"><span>整理</span></button>
+    <button class="btn small" id="save-button" onclick="saveCurrent()" data-icon="check" data-tip="Ctrl + Enter" data-tip-pos="end"><span>保存</span></button>
+   </div>
+   <textarea id="editor" spellcheck="false" aria-label="LaTeX 或文本编辑器" placeholder="在这里输入 LaTeX，例如 \frac{-b+\sqrt{b^2-4ac}}{2a}" oninput="markDirty();livePreview()"></textarea>
+  </div>
+  </div>
+ </section>
+</main>
+
+<footer class="statusbar">
+ <button class="engine" onclick="openSettings()" data-tip="识别引擎设置" data-tip-pos="start-up"><i id="engine-dot"></i><span id="engine-name">离线识别</span></button>
+ <div class="segmented compact" id="quick-mode" style="--n:3" role="group" aria-label="识别模式"><i class="thumb"></i><button data-mode="formula" onclick="quickMode('formula')" data-tip="数学公式 → LaTeX" data-tip-pos="up">公式</button><button data-mode="mixed" onclick="quickMode('mixed')" data-tip="图文混排 → Markdown" data-tip-pos="up">图文</button><button data-mode="text" onclick="quickMode('text')" data-tip="中英文文字 → 文本" data-tip-pos="up">文字</button></div>
+ <span class="grow"></span>
+ <div class="confidence" id="confidence" hidden><span>置信度</span><div class="conf-bar"><i id="confidence-fill"></i></div><b id="confidence-value"></b></div>
+ <button class="icon-btn" id="theme-button" onclick="toggleTheme()" data-icon="moon" data-tip="切换深色 / 浅色" data-tip-pos="end-up" aria-label="切换主题"></button>
+</footer>
+
+<div id="progress" class="scan-card" hidden>
+ <div class="scan-thumb"><img id="progress-image" alt=""><i></i></div>
+ <div class="scan-info"><b id="progress-label">正在识别…</b><span id="queue-label"></span></div>
+ <button class="btn small" data-action="cancel">取消</button>
+</div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<dialog id="ask-dialog" class="ask">
+ <h2 id="ask-title"></h2><p id="ask-text"></p>
+ <div class="ask-buttons"><button class="btn" id="ask-cancel">取消</button><button class="btn primary" id="ask-ok">确定</button></div>
+</dialog>
+
+<dialog id="settings-dialog">
+ <div class="modal-heading"><h2>设置与帮助</h2><button class="icon-btn" onclick="closeSettings()" data-icon="close" aria-label="关闭"></button></div>
+ <div class="settings-scroll">
+  <h3>外观与复制</h3>
+  <div class="two-fields">
+   <label class="field">界面主题<select id="setting-theme"><option value="auto">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select></label>
+   <label class="field">自动复制的公式格式<select id="setting-copyformat"><option value="latex">纯 LaTeX</option><option value="inline">$ … $ 行内公式</option><option value="display">$$ … $$ 块公式</option><option value="bracket">\[ … \] 独立公式</option><option value="equation">equation 环境</option></select></label>
+  </div>
+  <label class="check-field"><input id="setting-autocopy" type="checkbox">识别完成后自动复制结果</label>
+  <label class="check-field"><input id="setting-tidy" type="checkbox">自动整理离线识别的 LaTeX（去掉多余空格，补全 \left \right）</label>
+
+  <h3>识别引擎</h3>
+  <div class="info-panel">默认在本机离线识别。只有选择联网引擎并发起识别，图片才会发送到对应服务。</div>
+  <label class="field">使用的引擎<select id="setting-provider" onchange="providerFields()"><option value="offline">离线 · Pix2Text + RapidOCR（已内置）</option><option value="mathpix">联网 · Mathpix OCR API</option><option value="compatible">联网 · 兼容 Chat Completions 的视觉接口</option></select></label>
+  <div id="cloud-fields" hidden>
+   <label class="field" id="appid-field">Mathpix App ID<input id="setting-appid" autocomplete="off" placeholder="app_id"></label>
+   <div id="compatible-fields"><label class="field">完整接口地址<input id="setting-endpoint" placeholder="https://你的服务地址/v1/chat/completions"></label><label class="field">支持图片输入的模型名称<input id="setting-model" placeholder="填写服务商提供的视觉模型名称"></label></div>
+   <label class="field">API 密钥<input id="setting-key" type="password" autocomplete="off" placeholder="留空保留已保存密钥"></label>
+   <label class="check-field"><input type="checkbox" id="setting-clear-key">清除此引擎已保存的密钥</label>
+   <p class="hint">密钥使用 Windows DPAPI 加密。联网服务的额度和费用由服务商决定。Mathpix Snip 订阅与 API 额度分开。</p>
+  </div>
+  <div id="offline-fields" class="hint">公式模型：Pix2Text MFR 1.5 · 文字模型：RapidOCR<br>支持 CPU，无需独立显卡。图文混排可识别中文和公式；复杂多栏、手写和表格请核对结果。</div>
+
+  <h3>截图与工作方式</h3>
+  <div class="two-fields">
+   <label class="field">默认识别模式<select id="setting-mode"><option value="formula">数学公式</option><option value="mixed">图文混排</option><option value="text">中英文文字</option></select></label>
+   <label class="field">全局截图快捷键<select id="setting-hotkey"><option>Ctrl+Alt+S</option><option>Ctrl+Alt+M</option><option>Ctrl+Shift+S</option><option>Ctrl+Alt+Q</option></select></label>
+  </div>
+  <label class="check-field"><input id="setting-tray" type="checkbox">关闭窗口后保留在系统托盘</label>
+  <p class="hint">Ctrl + Alt + O 打开主窗口；Esc 取消截图。多个显示器可分别框选，跨屏内容请分开截图。</p>
+
+  <h3>本地资料库</h3>
+  <p class="path" id="data-path"></p>
+  <div class="settings-buttons"><button class="btn" data-action="data_dir">打开数据文件夹</button><button class="btn" data-action="backup">导出历史备份</button></div>
+
+  <h3>快捷键</h3>
+  <div class="keys"><span><kbd>←</kbd><kbd>→</kbd>上一条 / 下一条</span><span><kbd>Ctrl</kbd><kbd>C</kbd>复制当前 LaTeX</span><span><kbd>Ctrl</kbd><kbd>Enter</kbd>保存修改</span><span><kbd>Ctrl</kbd><kbd>L</kbd>打开资料库</span><span><kbd>Ctrl</kbd><kbd>N</kbd>新建公式</span><span><kbd>Ctrl</kbd><kbd>F</kbd>搜索</span></div>
+
+  <h3>使用提示</h3>
+  <ul class="help-list"><li>单个公式选“公式”；含中文说明的段落选“图文”。</li><li>紧贴公式边缘框选，保持清晰，不要把软件工具栏一起截进去。</li><li>粘贴到 Word：点“复制到 Word”后直接粘贴，或导出 DOCX。</li><li>PDF 支持选页导入后识别，不保留原文档的完整排版。</li><li>输出为模型识别结果，不保证与 Mathpix 的准确率相同。</li></ul>
+  <div class="about">拾式 FormulaSnip <span id="about-version"></span><br>独立开发的公式识别工具，与 Mathpix 无隶属关系。<br>模型与组件的许可说明随程序附带。</div>
+ </div>
+ <div class="modal-footer"><button class="link danger" data-action="quit">退出程序</button><div><button class="btn" onclick="closeSettings()">取消</button><button class="btn primary" onclick="saveSettings()">保存设置</button></div></div>
+</dialog>
+</body></html>

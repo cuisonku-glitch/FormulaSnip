@@ -1,0 +1,122 @@
+[
+  {
+    "name": "PySide6",
+    "version": "6.8.3",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "PySide6-Essentials",
+    "version": "6.8.3",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "PySide6-Addons",
+    "version": "6.8.3",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "shiboken6",
+    "version": "6.8.3",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "onnxruntime",
+    "version": "1.31.0",
+    "license_files": 1,
+    "homepage": "https://onnxruntime.ai"
+  },
+  {
+    "name": "tokenizers",
+    "version": "0.23.3",
+    "license_files": 0,
+    "homepage": ""
+  },
+  {
+    "name": "Pillow",
+    "version": "12.3.0",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "numpy",
+    "version": "1.26.4",
+    "license_files": 4,
+    "homepage": "https://numpy.org"
+  },
+  {
+    "name": "rapidocr-onnxruntime",
+    "version": "1.4.4",
+    "license_files": 0,
+    "homepage": "https://github.com/RapidAI/RapidOCR"
+  },
+  {
+    "name": "opencv-python",
+    "version": "4.11.0.86",
+    "license_files": 5,
+    "homepage": "https://github.com/opencv/opencv-python"
+  },
+  {
+    "name": "pypdfium2",
+    "version": "5.14.0",
+    "license_files": 18,
+    "homepage": "https://github.com/pypdfium2-team/pypdfium2"
+  },
+  {
+    "name": "python-docx",
+    "version": "1.2.0",
+    "license_files": 1,
+    "homepage": ""
+  },
+  {
+    "name": "latex2mathml",
+    "version": "3.81.1",
+    "license_files": 0,
+    "homepage": ""
+  },
+  {
+    "name": "mathml2omml",
+    "version": "0.0.2",
+    "license_files": 1,
+    "homepage": "https://github.com/amedama41/mathml2omml"
+  },
+  {
+    "name": "requests",
+    "version": "2.34.2",
+    "license_files": 2,
+    "homepage": ""
+  },
+  {
+    "name": "lxml",
+    "version": "6.1.3",
+    "license_files": 2,
+    "homepage": "https://lxml.de/"
+  },
+  {
+    "name": "shapely",
+    "version": "2.2.0",
+    "license_files": 3,
+    "homepage": ""
+  },
+  {
+    "name": "pyclipper",
+    "version": "1.4.0",
+    "license_files": 1,
+    "homepage": "https://github.com/fonttools/pyclipper"
+  },
+  {
+    "name": "PyYAML",
+    "version": "6.0.3",
+    "license_files": 1,
+    "homepage": "https://pyyaml.org/"
+  },
+  {
+    "name": "pyinstaller",
+    "version": "6.22.3",
+    "license_files": 1,
+    "homepage": ""
+  }
+]

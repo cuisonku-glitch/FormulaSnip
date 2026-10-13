@@ -1,0 +1,17 @@
+[
+  {
+    "file": "models/formula/decoder_model.onnx",
+    "bytes": 32026253,
+    "sha256": "917deb98e91a0453c5f234f58a0f32f9fb037de8527c7eb4ed394daf9e692f2a"
+  },
+  {
+    "file": "models/formula/encoder_model.onnx",
+    "bytes": 87510770,
+    "sha256": "080a3f660f08bc9ebcacdd96e34be6b6400f8c7e62d7cd0dd8251badc37f610b"
+  },
+  {
+    "file": "models/layout/pix2text-mfd-1.5.onnx",
+    "bytes": 80311115,
+    "sha256": "40d4fc852d99bcbf25a9478897d2f49fbbb8f7fdd6569c088cd1c31386293bd7"
+  }
+]
